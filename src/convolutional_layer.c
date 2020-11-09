@@ -5,9 +5,8 @@
 #include "uwnet.h"
 
 // Add bias terms to a matrix
-// matrix xw: partially computed output of layer
+// matrix m: partially computed output of layer
 // matrix b: bias to add in (should only be one row!)
-// returns: y = wx + b
 matrix forward_convolutional_bias(matrix xw, matrix b)
 {
     assert(b.rows == 1);
@@ -24,9 +23,9 @@ matrix forward_convolutional_bias(matrix xw, matrix b)
     return y;
 }
 
-// Calculate dL/db from a dL/dy
-// matrix dy: derivative of loss wrt xw+b, dL/d(xw+b)
-// returns: derivative of loss wrt b, dL/db
+// Calculate bias updates from a delta matrix
+// matrix delta: error made by the layer
+// matrix db: delta for the biases
 matrix backward_convolutional_bias(matrix dy, int n)
 {
     assert(dy.cols % n == 0);
@@ -57,9 +56,85 @@ matrix im2col(image im, int size, int stride)
 
     // TODO: 5.1
     // Fill in the column matrix with patches from the image
+    /* 
+    //TRIAL1
+    int im_x, im_y, im_c;
+    for(i=0; i<rows; i++)
+    {
+        for(j=0; j<cols; j++)
+        {
+            im_x = -size/2 + (j/outw)*stride ;
+            im_y = -size/2 + j%outw + i%size;
+            im_c = i/(size*size);
 
+            col.data[i*col.cols + j] = get_pixel(im, im_x, im_y, im_c);
 
+        }
+    }
+    */
 
+    // printf("im.w=%d \n", im.w);
+    // printf("im.h=%d \n", im.h);
+    // printf("size=%d \n", size);
+    // printf("stride=%d \n", stride);
+    // printf("matrix rows = %d \n", rows);
+    // printf("matrix cols = %d \n", cols);  
+    
+    
+    //TRIAL2
+    /*
+    int mr, mc;
+    int l;
+    int c;
+    for(c=0; c<im.c; c++){
+        for(i=0; i<im.h; i+=stride){
+            for(j=0; j<im.w; j+=stride){
+                mc = (i/stride)*outw + j/stride;
+
+                mr = c*size*size;
+                for(k=-size/2; k<size/2; k++){
+                    for(l=-size/2; l<size/2; l++){
+                        //printf("mr=%d \n", mr);
+                        //printf("mc=%d \n", mc);
+                        if (k+i >=0 && l+j>=0 && k+i<im.h && l+j<im.w)
+                            col.data[mr*col.cols + mc] = get_pixel(im, k+i, l+j, c); 
+                        else
+                            col.data[mr*col.cols + mc] = 0;
+
+                        mr+=1;
+                    }
+                }
+
+            }
+        }
+        printf("col.data[34] = %f \n", col.data[34]);
+    }
+    */
+    
+
+    //TRIAL3
+    for(k=0; k<rows; k++){
+        int im_w_o = k%size;
+        int im_h_o = (k/size)%size;
+        int im_ch  = k/(size*size);
+
+        for(i=0; i<outh; i++){ //out image height
+            for(j=0; j<outw; j++){ //out image width
+                int im_r = im_h_o + i*stride;
+                int im_c = im_w_o + j*stride;
+
+                im_r -= (size-1)/2;
+                im_c -= (size-1)/2;
+
+                if(im_r>=0 && im_r<im.h && im_c>=0 && im_c<im.w)
+                    col.data[(k*outh + i)*outw + j] = get_pixel(im, im_c, im_r, im_ch);//im.data[(im_ch*im.h + im_r)*im.w + im_c];
+                else    
+                    col.data[(k*outh + i)*outw + j] = 0;
+            }
+        }
+ 
+    }
+  
     return col;
 }
 
@@ -74,11 +149,30 @@ image col2im(int width, int height, int channels, matrix col, int size, int stri
 
     image im = make_image(width, height, channels);
     int outw = (im.w-1)/stride + 1;
+    int outh = (im.h-1)/stride + 1;
     int rows = im.c*size*size;
 
     // TODO: 5.2
     // Add values into image im from the column matrix
-    
+     for(k=0; k<rows; k++){
+        int im_w_o = k%size;
+        int im_h_o = (k/size)%size;
+        int im_ch  = k/(size*size);
+
+        for(i=0; i<outh; i++){ //out image height
+            for(j=0; j<outw; j++){ //out image width
+                int im_r = im_h_o + i*stride;
+                int im_c = im_w_o + j*stride;
+
+                im_r -= (size-1)/2;
+                im_c -= (size-1)/2;
+
+                if(im_r>=0 && im_r<im.h && im_c>=0 && im_c<im.w)
+                    im.data[(im_ch*im.h + im_r)*im.w + im_c] += col.data[(k*outh + i)*outw + j];
+            }
+        }
+ 
+    }   
 
 
     return im;
@@ -118,8 +212,7 @@ matrix forward_convolutional_layer(layer l, matrix in)
 
 // Run a convolutional layer backward
 // layer l: layer to run
-// matrix dy: dL/dy for this layer
-// returns: dL/dx for this layer
+// matrix dy: derivative of loss wrt output dL/dy
 matrix backward_convolutional_layer(layer l, matrix dy)
 {
     matrix in = *l.x;
@@ -174,6 +267,22 @@ matrix backward_convolutional_layer(layer l, matrix dy)
 void update_convolutional_layer(layer l, float rate, float momentum, float decay)
 {
     // TODO: 5.3
+
+    // Apply our updates using our SGD update rule
+    // assume  l.dw = dL/dw - momentum * update_prev
+    // we want l.dw = dL/dw - momentum * update_prev + decay * w
+    // then we update l.w = l.w - rate * l.dw
+    // lastly, l.dw is the negative update (-update) but for the next iteration
+    // we want it to be (-momentum * update) so we just need to scale it a little
+
+    axpy_matrix(decay, l.w, l.dw);
+    axpy_matrix(-rate, l.dw, l.w);
+    scal_matrix(momentum, l.dw);
+
+    // Do the same for biases as well but no need to use weight decay on biases
+
+    axpy_matrix(-rate, l.db, l.b);
+    scal_matrix(momentum, l.db);
 }
 
 // Make a new convolutional layer
