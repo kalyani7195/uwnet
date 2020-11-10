@@ -107,15 +107,15 @@ matrix delta_mean(matrix d, matrix v)
     matrix dm = make_matrix(1, groups);
     // TODO 7.3 - Calculate dL/dm
     double eps = 0.00001f;
-    //int n = v.cols
+    int n = d.cols/ groups;
 
 
-    // int i, j;
-    // for(i = 0; i < d.rows; i++ ){
-    //     for(j = 0; j < d.cols ; j++){
-    //         dm.data[ j] +=  (d.data[i*d.cols + j] * -1.0 / sqrt(v.data[j]+ eps )) ;
-    //     }
-    // }
+    int i, j;
+    for(i = 0; i < d.rows; i++ ){
+        for(j = 0; j < d.cols ; j++){
+            dm.data[ j/n] +=  (d.data[i*d.cols + j] * -1.0 / sqrt(v.data[j/n]+ eps )) ;
+        }
+    }
 
 
 
@@ -128,13 +128,32 @@ matrix delta_variance(matrix d, matrix x, matrix m, matrix v)
     int groups = m.cols;
     matrix dv = make_matrix(1, groups);
     // TODO 7.4 - Calculate dL/dv
-    //double eps = 0.00001f;
-    // int i, j;
-    // for( i= 0; i < d.rows; i++){
-    //     for(j = 0 ; j< d.cols ; j++){
-    //         dv.data[j] = dv.data[j] + (d.data[i*d.cols + j] * x.data[i*d.cols + j] * -0.5 * pow( v.data[j]+ eps , -1.5 )  );
-    //     }
-    // }
+    double eps = 0.00001f;
+
+    int n = x.cols /groups;
+    // printf(" d rows %d\n", d.rows);
+    // printf(" d cols %d\n", d.cols);
+
+    // printf(" x rows %d\n", x.rows);
+    // printf(" x cols %d\n", x.cols);
+
+    // printf(" m rows %d\n", m.rows);
+    // printf(" m cols %d\n", m.cols);
+
+    // printf(" v rows %d\n", v.rows);
+    // printf(" v cols %d\n", v.cols);
+
+
+    // printf(" dv rows %d\n", dv.rows);
+    // printf(" dv cols %d\n", dv.cols);
+
+
+    int i, j;
+    for( i= 0; i < d.rows; i++){
+        for(j = 0 ; j< d.cols ; j++){
+            dv.data[j/n] = dv.data[j/n] + (d.data[i*d.cols + j] * x.data[i*d.cols + j] * -0.5 * pow( v.data[j/n]+ eps , -1.5 )  );
+        }
+    }
 
 
 
