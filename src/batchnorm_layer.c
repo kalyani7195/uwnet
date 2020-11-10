@@ -30,6 +30,19 @@ matrix variance(matrix x, matrix m, int groups)
 {
     matrix v = make_matrix(1, groups);
     // TODO: 7.1 - Calculate variance
+    int n = x.cols /groups;
+    int i, j;
+
+    for(i = 0; i <x.rows; ++i){
+        for(j = 0; j < x.cols; ++j){
+            v.data[j/n] +=  pow(x.data[i*x.cols + j] - m.data[j/n], 2.0); 
+        }
+    } 
+
+    for(i = 0; i< v.cols; ++i){
+        v.data[i] = v.data[i] / x.rows / n;
+    }
+
     return v;
 }
 
@@ -39,6 +52,19 @@ matrix normalize(matrix x, matrix m, matrix v, int groups)
 {
     matrix norm = make_matrix(x.rows, x.cols);
     // TODO: 7.2 - Normalize x
+    int n = x.cols / groups;
+    int i, j;
+    double eps = 0.00001f;
+    for(i = 0; i <norm.rows; ++i){
+        for(j = 0; j < norm.cols; ++j){
+            norm.data[i*x.cols + j] =  (x.data[i*x.cols + j] -  m.data[j/n]) / sqrt(v.data[j/n] +  eps);
+        }
+    } 
+
+
+
+
+
     return norm;
 }
 
@@ -77,8 +103,22 @@ matrix forward_batchnorm_layer(layer l, matrix x)
 matrix delta_mean(matrix d, matrix v)
 {
     int groups = v.cols;
+    
     matrix dm = make_matrix(1, groups);
     // TODO 7.3 - Calculate dL/dm
+    double eps = 0.00001f;
+    //int n = v.cols
+
+
+    // int i, j;
+    // for(i = 0; i < d.rows; i++ ){
+    //     for(j = 0; j < d.cols ; j++){
+    //         dm.data[ j] +=  (d.data[i*d.cols + j] * -1.0 / sqrt(v.data[j]+ eps )) ;
+    //     }
+    // }
+
+
+
     return dm;
 }
 
@@ -88,6 +128,18 @@ matrix delta_variance(matrix d, matrix x, matrix m, matrix v)
     int groups = m.cols;
     matrix dv = make_matrix(1, groups);
     // TODO 7.4 - Calculate dL/dv
+    //double eps = 0.00001f;
+    // int i, j;
+    // for( i= 0; i < d.rows; i++){
+    //     for(j = 0 ; j< d.cols ; j++){
+    //         dv.data[j] = dv.data[j] + (d.data[i*d.cols + j] * x.data[i*d.cols + j] * -0.5 * pow( v.data[j]+ eps , -1.5 )  );
+    //     }
+    // }
+
+
+
+
+
     return dv;
 }
 
