@@ -1,18 +1,35 @@
 from uwnet import *
-def conv_net():
+def conv_net_bn():
     l = [   make_convolutional_layer(32, 32, 3, 8, 3, 2),
-            make_batchnorm_layer(32),
+            make_batchnorm_layer(8),
             make_activation_layer(RELU),
             make_maxpool_layer(16, 16, 8, 3, 2),
             make_convolutional_layer(8, 8, 8, 16, 3, 1),
-            make_batchnorm_layer(8),
+            make_batchnorm_layer(16),
             make_activation_layer(RELU),
             make_maxpool_layer(8, 8, 16, 3, 2),
             make_convolutional_layer(4, 4, 16, 32, 3, 1),
-            make_batchnorm_layer(4),
+            make_batchnorm_layer(32),
             make_activation_layer(RELU),
             make_connected_layer(512, 10),
             make_activation_layer(SOFTMAX)]
+
+
+def conv_net():
+    l = [   make_convolutional_layer(32, 32, 3, 8, 3, 2),
+            make_activation_layer(RELU),
+            make_maxpool_layer(16, 16, 8, 3, 2),
+            make_convolutional_layer(8, 8, 8, 16, 3, 1),
+            make_activation_layer(RELU),
+            make_maxpool_layer(8, 8, 16, 3, 2),
+            make_convolutional_layer(4, 4, 16, 32, 3, 1),
+            make_activation_layer(RELU),
+            make_connected_layer(512, 10),
+            make_activation_layer(SOFTMAX)]
+
+
+
+
     return make_net(l)
 
 
@@ -30,6 +47,7 @@ momentum = .9
 decay = .005
 
 m = conv_net()
+#m = con_net_bn()
 print("training...")
 train_image_classifier(m, train, batch, iters, rate, momentum, decay)
 print("done")
@@ -47,8 +65,7 @@ print("test accuracy:     %f", accuracy_net(m, test))
 #('test accuracy:     %f', 0.400299996137619)
 
 #With BN
-#('training accuracy: %f', 0.5351200103759766)
-#('test accuracy:     %f', 0.5246999859809875)
-
+#('training accuracy: %f', 0.5585799813270569)
+#('test accuracy:     %f', 0.5461000204086304)
 
 # Model converges faster when we add batch normalization.
