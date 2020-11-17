@@ -13,6 +13,7 @@ def conv_net_bn():
             make_activation_layer(RELU),
             make_connected_layer(512, 10),
             make_activation_layer(SOFTMAX)]
+    return make_net(l)
 
 
 def conv_net():
@@ -26,7 +27,6 @@ def conv_net():
             make_activation_layer(RELU),
             make_connected_layer(512, 10),
             make_activation_layer(SOFTMAX)]
-
 
 
 
@@ -46,8 +46,8 @@ rate = .01
 momentum = .9
 decay = .005
 
-m = conv_net()
-#m = con_net_bn()
+#m = conv_net()
+m = conv_net_bn()
 print("training...")
 train_image_classifier(m, train, batch, iters, rate, momentum, decay)
 print("done")
