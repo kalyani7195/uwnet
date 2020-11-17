@@ -167,16 +167,48 @@ matrix delta_batch_norm(matrix d, matrix dm, matrix dv, matrix m, matrix v, matr
     matrix dx = make_matrix(d.rows, d.cols);
     // TODO 7.5 - Calculate dL/dx
 
-    // double eps = 0.00001f;
-    // int groups = m.cols;
-    // int n = d.cols /groups;
+    double eps = 0.00001f;
+    int groups = m.cols;
+    int n = d.cols /groups;
+    float denominator = x.rows * n;
 
-    // int i, j;
-    // for( i= 0; i < d.rows; i++){
-    //     for(j = 0 ; j< d.cols ; j++){
-    //         dx.data[i*d.cols + j] = (d.data[i*d.cols + j] * 1.0 / sqrt(v.data[j/n]+ eps )  + dv.data[j/n]/ (float)n   * 2.0 * (x.data[i*d.cols + j] - m.data[j/n]) + dm.data[j/n] /(float)n);
-    //     }
-    // }
+    // printf("n : %d\n", n);
+    // printf("groups : %d\n", groups);
+
+    // printf(" d rows %d\n", d.rows);
+    // printf(" d cols %d\n", d.cols);
+
+ 
+    // printf(" x rows %d\n", x.rows);
+    // printf(" x cols %d\n", x.cols);
+
+    // printf(" m rows %d\n", m.rows);
+    // printf(" m cols %d\n", m.cols);
+
+    // printf(" dm rows %d\n", dm.rows);
+    // printf(" dm cols %d\n", dm.cols);
+
+
+
+    // printf(" v rows %d\n", v.rows);
+    // printf(" v cols %d\n", v.cols);
+
+
+    // printf(" dv rows %d\n", dv.rows);
+    // printf(" dv cols %d\n", dv.cols);
+
+
+
+
+
+
+    int i, j;
+    for( i= 0; i < dx.rows; i++){
+        for(j = 0 ; j< dx.cols ; j++){
+            dx.data[i * dx.cols + j] = (d.data[i * d.cols + j] * 1.0/sqrt(v.data[j/n]+ eps ) ) + dv.data[j/n] * (2.0* x.data[i * x.cols +j] - 2.0 * m.data[j/n])/denominator + dm.data[j/n] *1.0/denominator;
+            //dx.data[i*dx.cols + j] =  (d.data[i*d.cols + j] * 1.0 / sqrt(v.data[j/n]+ eps ))  + dv.data[j/n] * 2.0/(float)n * (x.data[i*x.cols + j] - m.data[j/n])  + dm.data[j/n] * 1.0/(float)n;
+        }
+    }
 
 
 
