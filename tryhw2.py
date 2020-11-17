@@ -49,7 +49,8 @@ decay = .005
 #m = conv_net()
 m = conv_net_bn()
 print("training...")
-train_image_classifier(m, train, batch, iters, rate, momentum, decay)
+#train_image_classifier(m, train, batch, iters, rate, momentum, decay)
+train_image_classifier(m, train, batch, iters, 0.0, momentum, decay)
 print("done")
 print
 
@@ -68,4 +69,17 @@ print("test accuracy:     %f", accuracy_net(m, test))
 #('training accuracy: %f', 0.5585799813270569)
 #('test accuracy:     %f', 0.5461000204086304)
 
-# Model converges faster when we add batch normalization.
+# With LR schedule
+# iter < 300; rate = 0.1
+# iter < 400: rate = 0.01
+# iter <=500: rate = 0.001 
+# ('training accuracy: %f', 0.5635600090026855)
+# ('test accuracy:     %f', 0.5507000088691711)
+
+
+# Model converges faster when we add batch normalization. We think this is because, 
+# when using mini-batch, the input data distribution to the layers change with each
+# mini-batch. With batch normalization, we normalize the input to each layer. The 
+# inputs will then be zero mean and unit variance, thereby eliminating vanishing gradient. 
+# This also reduces the Internal Covariance Shift (distribution of netorwk activations) 
+# and hence helps the model to converge faster.

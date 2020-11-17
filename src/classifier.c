@@ -59,7 +59,26 @@ void train_image_classifier(net m, data d, int batch, int iters, float rate, flo
 {
     srand(0);
     int e;
+
+    int save_rate = rate;
     for(e = 0; e < iters; ++e){
+        if (save_rate==0){ //LR scheduling
+        
+        if(e <300){
+
+            rate = .1;
+            printf("%f\n", rate);
+        }
+        else if(e <400){
+            rate = 0.01;
+            printf("%f\n", rate);
+        }
+        else if(e <=  500){
+            rate = 0.001;
+            printf("%f\n", rate);
+        }
+
+        }
         data b = random_batch(d, batch);
         matrix yhat = forward_net(m, b.x);
         float err = cross_entropy_loss(yhat, b.y);
